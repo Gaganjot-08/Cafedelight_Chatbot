@@ -22,12 +22,10 @@ class CafeChatbot:
     def find_item(self, text):
         low = text.lower()
 
-        # Direct exact match or substring match
         for key, value in self.all_items().items():
             if key in low:
                 return value
 
-        # Word intersection fallback
         words = set(re.findall(r"[a-z]+", low))
         best = None
         best_score = 0
@@ -72,7 +70,8 @@ class CafeChatbot:
             "yes", "y", "yeah", "yep", "yup", "sure", "okay", "ok",
             "of course", "definitely", "please", "i do", "i want it",
             "yes please", "sure thing", "i'll have one", "i want to order it",
-            "i want this", "add it", "start order", "let's order", "i want to order"
+            "i want this", "add it", "start order", "let's order", "i want to order",
+            "start ordering", "order food"
         ]
         return low in yes_words or any(w in low for w in ["yes please", "i want it", "i'll have one", "order it", "want to order"])
 
@@ -91,50 +90,46 @@ class CafeChatbot:
         ]
         return low in phrases
 
+    def parse_quantity(self, text):
+        low = text.lower().strip()
+        match = re.search(r"\b(\d+)\b", low)
+        if match:
+            return int(match.group(1))
+        words_num = {"one": 1, "a": 1, "an": 1, "two": 2, "three": 3, "four": 4, "five": 5}
+        for w in low.split():
+            if w in words_num:
+                return words_num[w]
+        return None
+
     def process(self, text, current_order, customer):
         low = text.lower().strip()
 
-        # ── STATE 1: ITEM CONFIRMATION (e.g. after querying a specific item price) ──
+        # ── STATE 1: ITEM CONFIRMATION ──
         if self.state == "item_confirmation":
             if self.is_yes(low):
                 item = self.pending_item
                 self.state = "quantity"
                 return {
                     "message":
-                    f"Great choice!\n\n"
-                    f"{item} costs Rs. {self.get_price(item)}.\n\n"
+                    f"{item} — Rs. {self.get_price(item)}.\n\n"
                     f"How many would you like?"
                 }
             if self.is_no(low):
                 self.state = "ordering" if current_order else None
                 self.pending_item = None
-                prompt = "What else would you like to add?" if current_order else "Would you like to see something else from the menu?"
+                prompt = "What else would you like to add?" if current_order else "What else can I help you with?"
                 return {"message": f"No problem.\n\n{prompt}"}
 
         # ── STATE 2: QUANTITY SELECTION ──
         if self.state == "quantity":
-            try:
-                match = re.search(r"\d+", low)
-                if not match:
-                    words_num = {"one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "a": 1, "an": 1}
-                    qty = 0
-                    for w, val in words_num.items():
-                        if w in low.split():
-                            qty = val
-                            break
-                    if qty == 0:
-                        raise ValueError
-                else:
-                    qty = int(match.group())
-                if qty <= 0 or qty > 50:
-                    raise ValueError
-            except (AttributeError, ValueError):
+            qty = self.parse_quantity(low)
+            if not qty or qty <= 0 or qty > 50:
                 return {
                     "message": "Please enter a valid quantity.\n\nFor example: 1, 2, 3..."
                 }
 
             item = self.pending_item
-            self.state = "ordering"  # Keep in ORDERING mode so subsequent prompt asks "What else would you like to add?"
+            self.state = "ordering"
             self.pending_item = None
 
             return {
@@ -144,37 +139,6 @@ class CafeChatbot:
                 "message":
                 f"Added {qty} x {item} to your cart.\n\nWhat else would you like to add?"
             }
-
-        # ── STATE 3: OFFERED ORDER (User was asked "Would you like to order something?") ──
-        if self.state == "offered_order":
-            if self.is_yes(low):
-                self.state = "ordering"
-                return {"message": "Sure! What would you like to order?"}
-            if self.is_no(low):
-                self.state = None
-                return {"message": "No problem! Let me know if you need anything else."}
-
-        # ── STATE 4: ORDERING MODE ──
-        if self.state == "ordering":
-            # If user explicitly wants to checkout:
-            if any(x in low for x in ["checkout", "place order", "confirm order", "finish order", "complete order", "order now"]):
-                return {"action": "checkout", "message": ""}
-
-            # If user says done with ordering:
-            if self.is_done_with_order(low):
-                self.state = None
-                if current_order:
-                    return {"message": "Great! Say 'checkout' whenever you are ready to place your order."}
-                return {"message": "Your cart is currently empty. Let me know whenever you'd like to order!"}
-
-            # Check if user names an item directly in ordering mode:
-            item = self.find_item(low)
-            if item:
-                self.pending_item = item[0]
-                self.state = "quantity"
-                return {
-                    "message": f"{item[0]} — Rs. {self.get_price(item[0])}.\n\nHow many would you like?"
-                }
 
         # ── CHECKOUT STATES (Name, Phone, Order Type, Address) ──
         if self.state == "name":
@@ -244,25 +208,59 @@ class CafeChatbot:
                 "message": "Delivery address saved successfully.\n\nSay 'checkout' when you are ready to place the order."
             }
 
-        # ── INTENTS & GENERAL QUERIES ──
+        # ── INTENTS & ACTIONS ──
 
-        # 1. Direct Order Intent
-        if any(w in low for w in [
-            "i want to order", "i'd like to order", "id like to order", "i would like to order",
-            "start order", "start new order", "let's order", "lets order", "can i order",
-            "want to order"
-        ]):
-            self.state = "ordering"
-            return {"message": "Sure! What would you like to order?"}
-
-        # 2. Checkout Intent
+        # 1. Checkout Trigger
         if any(x in low for x in [
             "checkout", "place order", "confirm order", "finish order",
             "complete order", "order now"
         ]):
             return {"action": "checkout", "message": ""}
 
-        # 3. Opening Hours
+        # 2. Done with Ordering
+        if self.is_done_with_order(low):
+            self.state = None
+            if current_order:
+                return {"message": "Great! Say 'checkout' whenever you are ready to place your order."}
+            return {"message": "Your cart is currently empty."}
+
+        # 3. Direct Order Trigger (e.g. "I want to order", "let's order")
+        if any(w in low for w in [
+            "i want to order", "i'd like to order", "id like to order", "i would like to order",
+            "start order", "start new order", "let's order", "lets order", "can i order",
+            "want to order"
+        ]) and not self.find_item(low):
+            self.state = "ordering"
+            return {"message": "Sure! What would you like to order?"}
+
+        # 4. Item Order Intent / Item Mentioned with or without Quantity
+        item = self.find_item(low)
+        is_order_phrase = any(w in low for w in [
+            "want", "add", "give me", "i'll have", "i will have", "get me", "order",
+            "buy", "need", "can i get", "i'd like"
+        ])
+
+        if item:
+            qty = self.parse_quantity(low)
+            # If user explicitly specifies a quantity (e.g. "2 chicken burgers", "give me one cold coffee")
+            if qty and qty > 0:
+                self.state = "ordering"
+                return {
+                    "action": "add_item",
+                    "item": item[0],
+                    "quantity": qty,
+                    "message": f"Added {qty} x {item[0]} to your cart.\n\nWhat else would you like to add?"
+                }
+
+            # If user is in ordering mode OR uses an order phrase ("I want chicken burger", "add pizza")
+            if self.state == "ordering" or is_order_phrase:
+                self.pending_item = item[0]
+                self.state = "quantity"
+                return {
+                    "message": f"{item[0]} — Rs. {self.get_price(item[0])}.\n\nHow many would you like?"
+                }
+
+        # 5. Opening Hours
         if any(w in low for w in [
             "opening hour", "opening hours", "business hour", "business hours",
             "restaurant hour", "restaurant hours", "what time do you open",
@@ -271,52 +269,39 @@ class CafeChatbot:
             "hours", "timing", "timings", "working hours", "open time", "close time",
             "schedule"
         ]):
-            if self.state != "ordering":
-                self.state = "offered_order"
-            prompt = "What would you like to add to your order?" if self.state == "ordering" else "Would you like to order something?"
             return {
                 "message":
                 "Cafe Delight Opening Hours:\n\n"
-                "• Monday – Sunday: 10:00 AM – 10:00 PM\n\n"
-                f"{prompt}"
+                "• Monday – Sunday: 10:00 AM – 10:00 PM"
             }
 
-        # 4. Greetings
+        # 6. Greetings
         if any(x in low for x in ["hello", "hi", "hey", "namaste", "greetings"]):
-            if self.state != "ordering":
-                self.state = "offered_order"
             return {
                 "message":
-                "Hello!\n\nWelcome to Cafe Delight.\nWould you like to see our menu or place an order?"
+                "Hello!\n\nWelcome to Cafe Delight.\nHow can I help you today?"
             }
 
-        # 5. Popular Items / Recommendations
+        # 7. Popular Items / Recommendations
         if any(w in low for w in [
             "popular", "best seller", "bestseller", "recommend", "special",
             "today's special", "todays special", "top item", "favorite", "favourite",
             "best items", "what is popular"
         ]):
-            if self.state != "ordering":
-                self.state = "offered_order"
-            prompt = "What would you like to add to your order?" if self.state == "ordering" else "Would you like to order one of these?"
             return {
                 "message":
                 "Here are our most popular customer favorites:\n\n"
                 "• Chicken Burger - Rs. 180\n"
                 "• Margherita Pizza - Rs. 220\n"
                 "• Cold Coffee - Rs. 130\n"
-                "• Chocolate Brownie - Rs. 120\n\n"
-                f"{prompt}"
+                "• Chocolate Brownie - Rs. 120"
             }
 
-        # 6. Vegetarian Options
+        # 8. Vegetarian Options
         if any(w in low for w in [
             "vegetarian", "veg option", "veg food", "veg item", "vegetarian option",
             "vegetarian food", "vegetarian item", "only veg", "show veg", "veg"
         ]):
-            if self.state != "ordering":
-                self.state = "offered_order"
-            prompt = "What would you like to add to your order?" if self.state == "ordering" else "Would you like to order any of these?"
             return {
                 "message":
                 "Here are our vegetarian options:\n\n"
@@ -335,24 +320,20 @@ class CafeChatbot:
                 "Drinks:\n"
                 "• Cold Coffee - Rs. 130\n"
                 "• Fresh Lime Soda - Rs. 90\n"
-                "• Chocolate Shake - Rs. 160\n\n"
-                f"{prompt}"
+                "• Chocolate Shake - Rs. 160"
             }
 
-        # 7. Full Menu Query
+        # 9. Full Menu Query
         if any(w in low for w in [
             "menu", "what do you have", "what food", "show food", "show me food",
             "see the menu", "on the menu", "what can i eat", "full menu", "what's on the menu",
             "whats on the menu", "show menu"
         ]):
-            if self.state != "ordering":
-                self.state = "offered_order"
-            prompt = "What would you like to add to your order?" if self.state == "ordering" else "Would you like to order something?"
             return {
-                "message": self.menu_text() + f"\n\n{prompt}"
+                "message": self.menu_text()
             }
 
-        # 8. Category Browsing
+        # 10. Category Browsing
         for category in self.menu:
             cat_low = category.lower()
             cat_sing = cat_low[:-1] if cat_low.endswith("s") else cat_low
@@ -361,25 +342,18 @@ class CafeChatbot:
                 lines = [f"{category}", ""]
                 for name, data in foods.items():
                     lines.append(f"• {name} - Rs. {data['price']}\n  {data['description']}")
-
-                if self.state != "ordering":
-                    self.state = "offered_order"
-                prompt = "What would you like to add?" if self.state == "ordering" else "Would you like to order one?"
-                lines.append(f"\n{prompt}")
                 return {"message": "\n\n".join(lines)}
 
-        # 9. Specific Item Search (Price / Information)
-        item = self.find_item(low)
-
+        # 11. Specific Item Price / Information Query
         if item and any(word in low for word in [
             "price", "cost", "how much", "tell me", "describe", "what is",
             "about", "information", "rate"
         ]):
             self.pending_item = item[0]
             self.state = "item_confirmation"
-            return {"message": f"{item[0]} — Rs. {item[1]['price']}\n{item[1]['description']}\n\nWould you like to order this?"}
+            return {"message": f"{item[0]} — Rs. {item[1]['price']}\n{item[1]['description']}"}
 
-        # 10. General Prices Query (no specific item)
+        # 12. General Prices Query (no specific item)
         if any(w in low for w in [
             "price", "prices", "cost", "how much is the food", "food cost",
             "how much does your food cost", "show me prices", "what is the price"
@@ -388,30 +362,13 @@ class CafeChatbot:
             for category, foods in self.menu.items():
                 for name, data in foods.items():
                     lines.append(f"• {name} - Rs. {data['price']}")
-            if self.state != "ordering":
-                self.state = "offered_order"
-            prompt = "What would you like to add to your order?" if self.state == "ordering" else "Would you like to order something?"
-            lines.append(f"\n{prompt}")
             return {"message": "\n".join(lines)}
 
-        # 11. Item Selection / Order Intent (when item name is matched)
+        # 13. Fallback Item Mention (without explicit intent)
         if item:
             self.pending_item = item[0]
-            self.state = "quantity" if self.state == "ordering" else "item_confirmation"
-            if self.state == "quantity":
-                return {"message": f"{item[0]} — Rs. {self.get_price(item[0])}.\n\nHow many would you like?"}
-            return {"message": f"{item[0]} — Rs. {self.get_price(item[0])}.\n\nWould you like to order this?"}
-
-        # 12. General Order Intent
-        if any(x in low for x in [
-            "order", "buy", "want", "get me", "i'll have", "i will have",
-            "give me", "i need", "can i order"
-        ]):
-            self.state = "ordering"
-            return {
-                "message":
-                "Sure! What would you like to order?\n\nFor example:\n• Chicken Burger\n• Cold Coffee\n• Margherita Pizza"
-            }
+            self.state = "quantity"
+            return {"message": f"{item[0]} — Rs. {self.get_price(item[0])}.\n\nHow many would you like?"}
 
         if any(x in low for x in ["thanks", "thank you", "thank"]):
             return {"message": "You're very welcome!"}

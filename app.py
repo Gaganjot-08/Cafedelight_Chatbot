@@ -180,7 +180,11 @@ def finalize_order():
 @app.route("/")
 def index():
     get_state()
-    return render_template("index.html")
+    return jsonify({
+        "status": "Cafe Delight API Server Running",
+        "message": "Please access the frontend UI via Vite at http://localhost:8443"
+    })
+
 
 
 @app.route("/api/chat", methods=["POST"])

@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 
 // ─── TYPES ───────────────────────────────────
-type MsgKind = "text" | "err_unknown";
+type MsgKind = "text" | "err_unknown" | "err_notfound";
 
 interface BotMsg {
   id: number;
@@ -379,7 +379,7 @@ export default function App() {
         {/* ── MESSAGES ── */}
         <div className="flex-1 overflow-y-auto px-3 py-4 space-y-3" style={{ background: "#FEF9F6" }}>
           {empty
-            ? <WelcomeScreen onSend={sendMessage} onHoursUnavailable={handleHoursUnavailable} />
+            ? <WelcomeScreen onSend={sendMessage} />
             : (
               <>
                 {messages.map(msg => {
@@ -449,4 +449,3 @@ export default function App() {
   );
 }
 
-export default App;

@@ -252,13 +252,12 @@ class CafeChatbot:
                     "message": f"Added {qty} x {item[0]} to your cart.\n\nWhat else would you like to add?"
                 }
 
-            # If user is in ordering mode OR uses an order phrase ("I want chicken burger", "add pizza")
-            if self.state == "ordering" or is_order_phrase:
-                self.pending_item = item[0]
-                self.state = "quantity"
-                return {
-                    "message": f"{item[0]} — Rs. {self.get_price(item[0])}.\n\nHow many would you like?"
-                }
+            # If user mentions an item (e.g. "chicken burger", "cold coffee", "I want pizza")
+            self.pending_item = item[0]
+            self.state = "quantity"
+            return {
+                "message": f"{item[0]} — Rs. {self.get_price(item[0])}.\n\nHow many would you like?"
+            }
 
         # 5. Opening Hours
         if any(w in low for w in [
@@ -275,8 +274,9 @@ class CafeChatbot:
                 "• Monday – Sunday: 10:00 AM – 10:00 PM"
             }
 
-        # 6. Greetings
-        if any(x in low for x in ["hello", "hi", "hey", "namaste", "greetings"]):
+        # 6. Greetings (exact word matching to avoid 'hi' matching inside 'chicken')
+        words = set(re.findall(r"[a-z]+", low))
+        if any(w in words for w in ["hello", "hi", "hey", "namaste", "greetings"]):
             return {
                 "message":
                 "Hello!\n\nWelcome to Cafe Delight.\nHow can I help you today?"

@@ -101,6 +101,22 @@ class CafeChatbot:
                 return words_num[w]
         return None
 
+    def is_intent_or_query(self, low):
+        if self.find_item(low):
+            return True
+        for category in self.menu:
+            cat_low = category.lower()
+            cat_sing = cat_low[:-1] if cat_low.endswith("s") else cat_low
+            if cat_low in low or cat_sing in low:
+                return True
+        keywords = [
+            "menu", "price", "prices", "cost", "how much", "rate", "hours", "timing",
+            "timings", "open", "close", "schedule", "hello", "hi", "hey", "namaste",
+            "popular", "special", "recommend", "best", "veg", "vegetarian", "checkout",
+            "order", "buy", "cancel", "thanks", "thank", "food", "what", "show"
+        ]
+        return any(w in low for w in keywords)
+
     def process(self, text, current_order, customer):
         low = text.lower().strip()
 
@@ -120,25 +136,34 @@ class CafeChatbot:
                 prompt = "What else would you like to add?" if current_order else "What else can I help you with?"
                 return {"message": f"No problem.\n\n{prompt}"}
 
+            # If input is another query or intent, clear confirmation state and fall through
+            self.state = None
+            self.pending_item = None
+
         # ── STATE 2: QUANTITY SELECTION ──
         if self.state == "quantity":
             qty = self.parse_quantity(low)
-            if not qty or qty <= 0 or qty > 50:
+            if qty and 1 <= qty <= 50:
+                item = self.pending_item
+                self.state = "ordering"
+                self.pending_item = None
                 return {
-                    "message": "Please enter a valid quantity.\n\nFor example: 1, 2, 3..."
+                    "action": "add_item",
+                    "item": item,
+                    "quantity": qty,
+                    "message":
+                    f"Added {qty} x {item} to your cart.\n\nWhat else would you like to add?"
                 }
 
-            item = self.pending_item
-            self.state = "ordering"
-            self.pending_item = None
-
-            return {
-                "action": "add_item",
-                "item": item,
-                "quantity": qty,
-                "message":
-                f"Added {qty} x {item} to your cart.\n\nWhat else would you like to add?"
-            }
+            # If not a valid quantity, check if user typed a new query or item
+            if self.is_intent_or_query(low):
+                self.state = None
+                self.pending_item = None
+                # Fall through to process intent normally
+            else:
+                return {
+                    "message": f"Please enter a valid quantity for {self.pending_item or 'your item'}.\n\nFor example: 1, 2, 3..."
+                }
 
         # ── CHECKOUT STATES (Name, Phone, Order Type, Address) ──
         if self.state == "name":
@@ -349,8 +374,8 @@ class CafeChatbot:
             "price", "cost", "how much", "tell me", "describe", "what is",
             "about", "information", "rate"
         ]):
-            self.pending_item = item[0]
-            self.state = "item_confirmation"
+            self.pending_item = None
+            self.state = None
             return {"message": f"{item[0]} — Rs. {item[1]['price']}\n{item[1]['description']}"}
 
         # 12. General Prices Query (no specific item)

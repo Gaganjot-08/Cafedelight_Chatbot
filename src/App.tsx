@@ -61,11 +61,6 @@ const SendArrow = () => (
     <line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" />
   </svg>
 );
-const MicIcon = () => (
-  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-    <rect x="9" y="2" width="6" height="12" rx="3" /><path d="M5 10a7 7 0 0014 0" /><line x1="12" y1="19" x2="12" y2="22" />
-  </svg>
-);
 const MinIcon = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
     <line x1="5" y1="12" x2="19" y2="12" />
@@ -395,7 +390,7 @@ export default function App() {
                   return (
                     <div key={bot.id} className="flex flex-col items-start gap-1.5">
                       {bot.kind === "text" && <BotTextBubble text={bot.text ?? ""} />}
-                      {bot.kind === "err_unknown" && <ErrorBubble text={bot.text} suggestions={bot.suggestions} onSend={sendMessage} />}
+                      {bot.kind === "err_unknown" && <ErrorBubble kind={bot.kind} text={bot.text} suggestions={bot.suggestions} onSend={sendMessage} />}
                       <span className="text-[10px] text-[#C0A090] pl-9">{bot.timestamp}</span>
                     </div>
                   );
@@ -432,7 +427,6 @@ export default function App() {
               disabled={typing}
               className="flex-1 bg-transparent text-[13.5px] text-[#1A1008] placeholder-[#C8A098] outline-none disabled:opacity-50"
             />
-            <button className="text-[#C8A098] hover:text-[#D83828] transition-colors cursor-pointer flex-shrink-0"><MicIcon /></button>
           </div>
           <button
             onClick={() => sendMessage(input)}

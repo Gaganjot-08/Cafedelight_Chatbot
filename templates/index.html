@@ -1,1 +1,81 @@
-<!-- Deactivated: The old Python/Flask HTML frontend has been removed. The official frontend is the Figma React/Vite UI at http://localhost:8443 -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cafe Delight - Smart Ordering Assistant</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<div class="header">
+    <div class="logo-area">
+        <div class="logo-circle"></div>
+        <div>
+            <div class="cafe-name">CAFE DELIGHT</div>
+            <div class="cafe-tag">SMART ORDERING ASSISTANT</div>
+        </div>
+    </div>
+    <div class="status">
+        <span class="status-dot"></span> ONLINE
+    </div>
+</div>
+
+<div class="content">
+
+    <div class="chat-card">
+        <div class="chat-card-header">
+            <div class="chat-title">Conversation</div>
+            <div class="chat-subtitle">Ask me anything about our food</div>
+        </div>
+        <div id="chat-window" class="chat-window"></div>
+        <div class="input-card">
+            <input type="text" id="user-input" placeholder="Type your message...">
+            <button id="send-btn">SEND</button>
+        </div>
+    </div>
+
+    <div class="sidebar">
+        <div class="sidebar-title">QUICK ACTIONS</div>
+
+        <div class="action-btn" id="btn-menu">
+            <div class="action-title">View Menu</div>
+            <div class="action-sub">Browse our complete menu</div>
+        </div>
+        <div class="action-btn" id="btn-order">
+            <div class="action-title">Start New Order</div>
+            <div class="action-sub">Start ordering your food</div>
+        </div>
+        <div class="action-btn" id="btn-cart">
+            <div class="action-title">View Cart</div>
+            <div class="action-sub">Check your current order</div>
+        </div>
+        <div class="action-btn" id="btn-clear">
+            <div class="action-title">Clear Order</div>
+            <div class="action-sub">Remove everything from cart</div>
+        </div>
+
+        <div class="sidebar-title">CURRENT ORDER</div>
+
+        <div class="order-card">
+            <div class="order-top">
+                <span>Your items</span>
+                <span id="item-count">0 items</span>
+            </div>
+            <div id="cart-lines" class="cart-lines">
+                Your cart is empty.<br><br>Add something delicious<br>to get started.
+            </div>
+            <div class="total-bar">
+                <span>TOTAL</span>
+                <span id="total-amount">Rs. 0</span>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="footer">Cafe Delight &nbsp;•&nbsp; Fresh food. Simple ordering.</div>
+
+<script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+</body>
+</html>

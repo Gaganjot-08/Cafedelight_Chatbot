@@ -11,6 +11,234 @@ body { font-family: 'Inter', sans-serif; overflow: hidden; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #E0C0B8; border-radius: 99px; }
 
+/* ── CHAT SCROLL AREA & MINIMAL ON-BRAND SCROLLBAR ── */
+.chat-scroll-area {
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: #E8C8C0 transparent;
+}
+.chat-scroll-area::-webkit-scrollbar {
+  width: 4px;
+}
+.chat-scroll-area::-webkit-scrollbar-track {
+  background: transparent;
+}
+.chat-scroll-area::-webkit-scrollbar-thumb {
+  background: #E8C8C0;
+  border-radius: 9999px;
+  transition: background 0.2s ease;
+}
+.chat-scroll-area::-webkit-scrollbar-thumb:hover {
+  background: #D8A094;
+}
+
+/* ── 1. WIDGET ENTRANCE & AMBIENT BREATHING ── */
+@keyframes widgetEntrance {
+  0% {
+    opacity: 0;
+    transform: scale(0.95) translateY(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Subtle, slow ambient breathing on outer card shadow (~3.5s loop, red/cream palette) */
+@keyframes shellAmbientBreath {
+  0%, 100% {
+    box-shadow: 0 32px 80px rgba(80, 30, 20, 0.16),
+                0 8px 24px rgba(80, 30, 20, 0.08),
+                0 1px 4px rgba(80, 30, 20, 0.04);
+  }
+  50% {
+    box-shadow: 0 34px 84px rgba(80, 30, 20, 0.20),
+                0 10px 28px rgba(184, 40, 24, 0.11),
+                0 2px 6px rgba(80, 30, 20, 0.06);
+  }
+}
+
+.widget-enter {
+  animation: widgetEntrance 0.32s cubic-bezier(0.16, 1, 0.3, 1) both,
+             shellAmbientBreath 3.5s 0.32s ease-in-out infinite;
+  will-change: transform, opacity, box-shadow;
+}
+
+.chat-shell {
+  box-shadow: 0 32px 80px rgba(80, 30, 20, 0.16),
+              0 8px 24px rgba(80, 30, 20, 0.08),
+              0 1px 4px rgba(80, 30, 20, 0.04);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              height 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Floating card hover: gentle shadow deepen & 2px lift */
+.chat-shell:hover {
+  box-shadow: 0 38px 90px rgba(80, 30, 20, 0.22),
+              0 14px 32px rgba(184, 40, 24, 0.14),
+              0 2px 8px rgba(80, 30, 20, 0.08);
+  transform: translateY(-2px);
+}
+
+/* ── 2. QUICK ACTION CARDS (STAGGERED CASCADE REVEAL) ── */
+@keyframes cardCascade {
+  0% {
+    opacity: 0;
+    transform: translateY(14px) scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.qa-stagger-0 { animation: cardCascade 0.38s 0.16s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.qa-stagger-1 { animation: cardCascade 0.38s 0.23s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.qa-stagger-2 { animation: cardCascade 0.38s 0.30s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.qa-stagger-3 { animation: cardCascade 0.38s 0.37s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* Quick Action Card Micro-Interactions */
+.qa-card {
+  transition: border-color 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+              background 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+  position: relative;
+}
+.qa-card:hover {
+  border-color: #E85038;
+  background: #FFF8F6;
+  box-shadow: 0 8px 24px rgba(208, 56, 40, 0.16), 0 0 0 1px rgba(232, 80, 56, 0.15);
+  transform: translateY(-3px);
+}
+.qa-card:active {
+  transform: scale(0.96) translateY(0);
+  transition-duration: 0.08s;
+}
+.qa-emoji {
+  display: inline-block;
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.qa-card:hover .qa-emoji {
+  transform: scale(1.12) translateY(-2px);
+}
+
+/* ── 3. WELCOME TO CONVERSATION VIEW TRANSITION & CHIP STRIP ── */
+@keyframes conversationOpenUp {
+  0% {
+    opacity: 0;
+    transform: translateY(12px) scale(0.985);
+  }
+  60% {
+    opacity: 0.88;
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.conversation-view-enter {
+  animation: conversationOpenUp 0.36s cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: transform, opacity;
+}
+
+@keyframes welcomeWrapFade {
+  0% {
+    opacity: 0;
+    transform: scale(0.985);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.welcome-view-wrap {
+  animation: welcomeWrapFade 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes chipStripEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.chip-strip-enter {
+  animation: chipStripEnter 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ── MESSAGE BUBBLE ENTRANCES (USER & BOT) ── */
+@keyframes userMsgIn {
+  0% {
+    opacity: 0;
+    transform: translateY(18px) scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.user-msg-in {
+  animation: userMsgIn 0.29s cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: transform, opacity;
+  transform-origin: bottom right;
+}
+
+@keyframes botMsgGlideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(12px) translateX(-4px) scale(0.96);
+  }
+  45% {
+    opacity: 0.75;
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) translateX(0) scale(1);
+  }
+}
+.bot-msg-in {
+  animation: botMsgGlideIn 0.35s 0.08s cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: transform, opacity;
+  transform-origin: bottom left;
+}
+
+@keyframes msgIn {
+  0% {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.msg-in {
+  animation: msgIn 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: transform, opacity;
+}
+
+@keyframes typingBubbleEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) translateX(-4px) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) translateX(0) scale(1);
+  }
+}
+.typing-bubble-enter {
+  animation: typingBubbleEnter 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+  transform-origin: bottom left;
+  will-change: transform, opacity;
+}
+
 @keyframes typingDot {
   0%, 60%, 100% { transform: translateY(0); opacity: 0.3; }
   30% { transform: translateY(-5px); opacity: 1; }
@@ -19,19 +247,272 @@ body { font-family: 'Inter', sans-serif; overflow: hidden; }
 .dot2 { animation: typingDot 1.1s 0.18s ease-in-out infinite; }
 .dot3 { animation: typingDot 1.1s 0.36s ease-in-out infinite; }
 
-@keyframes msgIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
+/* ── 4. CART BADGE (PULSE/BOUNCE ON CHANGE) ── */
+@keyframes cartBadgePulse {
+  0% {
+    transform: scale(0.92);
+  }
+  40% {
+    transform: scale(1.14);
+    box-shadow: 0 0 12px rgba(255, 255, 255, 0.5);
+  }
+  75% {
+    transform: scale(0.98);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
-.msg-in { animation: msgIn 0.22s ease-out both; }
-
-@keyframes onlinePulse {
-  0%   { box-shadow: 0 0 0 0 rgba(52,211,153,0.7); }
-  70%  { box-shadow: 0 0 0 7px rgba(52,211,153,0); }
-  100% { box-shadow: 0 0 0 0 rgba(52,211,153,0); }
+.cart-pulse {
+  animation: cartBadgePulse 0.38s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
-.online-dot { animation: onlinePulse 2.2s ease-out infinite; }
 
+/* ── 5. HEADER AVATAR (GENTLE IDLE BREATHING ANIMATION) ── */
+@keyframes avatarIdleBreath {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 2px 8px rgba(208, 56, 40, 0.35), 0 0 0 0 rgba(244, 112, 85, 0);
+  }
+  50% {
+    transform: scale(1.035);
+    box-shadow: 0 4px 14px rgba(208, 56, 40, 0.45), 0 0 12px rgba(244, 112, 85, 0.4);
+  }
+}
+.avatar-idle {
+  animation: avatarIdleBreath 4.5s ease-in-out infinite;
+  transform-origin: center;
+}
+
+/* ── STATUS DOT PULSE (SMOOTH, NON-BLINKING GLOW) ── */
+@keyframes onlinePulseGlow {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.65), 0 0 6px rgba(52, 211, 153, 0.45);
+  }
+  50% {
+    transform: scale(1.08);
+    box-shadow: 0 0 0 4.5px rgba(52, 211, 153, 0.18), 0 0 10px rgba(52, 211, 153, 0.75);
+  }
+}
+.online-dot {
+  animation: onlinePulseGlow 2.4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* ── WELCOME ENTRANCE ANIMATIONS (ONE-TIME ON MOUNT) ── */
+@keyframes waveEntrance {
+  0% {
+    opacity: 0;
+    transform: scale(0.6) rotate(-18deg);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.12) rotate(14deg);
+  }
+  80% {
+    transform: scale(0.96) rotate(-6deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+.welcome-wave {
+  display: inline-block;
+  animation: waveEntrance 0.75s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transform-origin: 70% 70%;
+}
+
+@keyframes fadeUpEntrance {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.welcome-fade-up-1 {
+  animation: fadeUpEntrance 0.5s 0.1s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.welcome-fade-up-2 {
+  animation: fadeUpEntrance 0.5s 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ── 7 & 8. BUTTON MICRO-INTERACTIONS & SEND BUTTON STATES ── */
+.send-btn {
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+              background 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.send-btn-inactive {
+  opacity: 0.35;
+  transform: scale(0.94);
+  background: #E8C0B8;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.send-btn-active {
+  opacity: 1;
+  transform: scale(1);
+  background: linear-gradient(135deg, #E85038 0%, #C82820 100%);
+  box-shadow: 0 4px 14px rgba(232, 80, 56, 0.42), 0 0 10px rgba(232, 80, 56, 0.22);
+  cursor: pointer;
+}
+
+/* 1. Moment of send: Quick tight compress & spring back (~220ms) */
+@keyframes sendButtonCompress {
+  0% {
+    transform: scale(1);
+  }
+  32% {
+    transform: scale(0.915);
+  }
+  75% {
+    transform: scale(0.965);
+  }
+  100% {
+    transform: scale(0.94);
+  }
+}
+.send-btn-dispatch {
+  animation: sendButtonCompress 0.22s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+}
+
+/* 1. Icon launch: Forward-nudge + fade-out as button compresses */
+@keyframes sendIconLaunch {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  40% {
+    transform: translate(6px, -6px) scale(0.88);
+    opacity: 0.15;
+  }
+  70% {
+    transform: translate(11px, -11px) scale(0.7);
+    opacity: 0;
+  }
+  85% {
+    transform: translate(-2px, 2px) scale(0.85);
+    opacity: 0;
+  }
+  100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+}
+.send-icon-dispatch {
+  animation: sendIconLaunch 0.24s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* 2. Input container & field settling */
+@keyframes inputResetPulse {
+  0% {
+    background-color: #FFEAE4;
+    border-color: rgba(232, 80, 56, 0.25);
+    transform: scale(0.995);
+  }
+  40% {
+    background-color: #FFF2EE;
+    border-color: rgba(232, 80, 56, 0.1);
+  }
+  100% {
+    background-color: #FFF0EC;
+    border-color: transparent;
+    transform: scale(1);
+  }
+}
+.input-reset-anim {
+  animation: inputResetPulse 0.24s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes placeholderFadeIn {
+  0% {
+    opacity: 0.15;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+.chat-input-field:disabled {
+  animation: placeholderFadeIn 0.15s ease-out;
+}
+
+/* Subtle Shimmer Sheen Sweep on Hover */
+.send-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -120%;
+  width: 70%;
+  height: 100%;
+  background: linear-gradient(
+    115deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.15) 25%,
+    rgba(255, 230, 220, 0.45) 50%,
+    rgba(255, 255, 255, 0.15) 75%,
+    transparent 100%
+  );
+  transform: skewX(-20deg);
+  pointer-events: none;
+}
+
+.send-btn-active:hover::before {
+  left: 170%;
+  transition: left 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.send-btn-active:hover {
+  transform: scale(1.06);
+  box-shadow: 0 6px 18px rgba(232, 80, 56, 0.5), 0 0 12px rgba(232, 80, 56, 0.3) !important;
+}
+
+.send-btn-active:hover svg {
+  transform: translate(2px, -2px);
+}
+
+.send-btn-active:active {
+  transform: scale(0.92);
+  box-shadow: 0 2px 6px rgba(232, 80, 56, 0.3) !important;
+  transition-duration: 0.08s;
+}
+
+.send-btn svg {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Chip / Reply Button Micro-Interactions */
+.chip-btn {
+  transition: background 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+              color 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+}
+.chip-btn:hover {
+  background: #E04030;
+  color: #fff;
+  border-color: #E04030;
+  box-shadow: 0 2px 8px rgba(224, 64, 48, 0.24);
+  transform: translateY(-1px);
+}
+.chip-btn:active {
+  transform: scale(0.94);
+  transition-duration: 0.08s;
+}
+
+.qty-b { transition: background 0.12s, transform 0.1s; }
+.qty-b:active:not(:disabled) { transform: scale(0.85); }
+
+/* Decorative & Utility Animations */
 @keyframes spin { to { transform: rotate(360deg); } }
 .anim-spin { animation: spin 0.85s linear infinite; }
 
@@ -55,32 +536,106 @@ body { font-family: 'Inter', sans-serif; overflow: hidden; }
 }
 .badge-pop { animation: badgePop 0.3s cubic-bezier(0.16,1,0.3,1) both; }
 
-.qa-card {
-  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s, transform 0.15s;
-  cursor: pointer;
+/* ── FUTURE MINIMIZED & CLOSED STATES (PRE-STYLED FOR FUTURE PASS) ── */
+@keyframes shellMinimize {
+  0% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.85) translateY(40px);
+    pointer-events: none;
+  }
 }
-.qa-card:hover  { border-color: #E04030; background: #FFF5F2; box-shadow: 0 4px 16px rgba(224,64,48,0.13); transform: translateY(-1px); }
-.qa-card:active { transform: scale(0.97); }
-
-.chip-btn {
-  transition: background 0.13s, color 0.13s, border-color 0.13s, transform 0.1s;
-  cursor: pointer;
+.chat-shell-minimized {
+  animation: shellMinimize 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  pointer-events: none;
 }
-.chip-btn:hover  { background: #E04030; color: #fff; border-color: #E04030; }
-.chip-btn:active { transform: scale(0.94); }
 
-.qty-b { transition: background 0.12s, transform 0.1s; }
-.qty-b:active:not(:disabled) { transform: scale(0.85); }
+@keyframes shellClose {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.90) translateY(12px);
+    pointer-events: none;
+  }
+}
+.chat-shell-closed {
+  animation: shellClose 0.20s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  pointer-events: none;
+}
 
-.send-btn { transition: transform 0.12s, box-shadow 0.12s; }
-.send-btn:hover:not(:disabled)  { transform: scale(1.06); }
-.send-btn:active:not(:disabled) { transform: scale(0.93); }
-
+/* Responsive Shell */
 @media (max-width: 500px) {
   .chat-shell {
     width: 100vw !important;
     height: 100dvh !important;
     border-radius: 0 !important;
     box-shadow: none !important;
+  }
+}
+
+/* ── 9. PREFERS-REDUCED-MOTION SUPPORT ── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .welcome-wave,
+  .avatar-idle,
+  .online-dot,
+  .dot1, .dot2, .dot3,
+  .cart-pulse,
+  .qa-stagger-0,
+  .qa-stagger-1,
+  .qa-stagger-2,
+  .qa-stagger-3,
+  .conversation-view-enter,
+  .welcome-view-wrap,
+  .chip-strip-enter,
+  .bot-msg-in,
+  .typing-bubble-enter,
+  .send-btn-active,
+  .send-icon-dispatch,
+  .send-btn-dispatch,
+  .input-reset-anim,
+  .chat-input-field:disabled,
+  .chat-shell,
+  .chat-shell-minimized,
+  .chat-shell-closed {
+    animation: none !important;
+    transform: none !important;
+  }
+  .chat-shell:hover {
+    transform: none !important;
+  }
+  /* Simplified opacity-only fade with no transform for widget entrance */
+  .widget-enter {
+    animation: widgetEntranceReduced 0.25s ease-out both !important;
+    transform: none !important;
+  }
+  @keyframes widgetEntranceReduced {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  /* Simplified opacity-only fade with no transform for user bubbles */
+  .user-msg-in {
+    animation: userMsgFadeReduced 0.18s ease-out both !important;
+    transform: none !important;
+  }
+  @keyframes userMsgFadeReduced {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  .chat-scroll-area {
+    scroll-behavior: auto !important;
   }
 }

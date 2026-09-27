@@ -4,13 +4,24 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cafe Delight - Smart Ordering Assistant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
 
 <div class="header">
     <div class="logo-area">
-        <div class="logo-circle"></div>
+        <div class="logo-circle" aria-hidden="true">
+            <svg class="cafe-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
+                <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
+                <line x1="6" y1="1" x2="6" y2="4"></line>
+                <line x1="10" y1="1" x2="10" y2="4"></line>
+                <line x1="14" y1="1" x2="14" y2="4"></line>
+            </svg>
+        </div>
         <div>
             <div class="cafe-name">CAFE DELIGHT</div>
             <div class="cafe-tag">SMART ORDERING ASSISTANT</div>
@@ -28,31 +39,48 @@
             <div class="chat-title">Conversation</div>
             <div class="chat-subtitle">Ask me anything about our food</div>
         </div>
-        <div id="chat-window" class="chat-window"></div>
+        <div id="chat-window" class="chat-window" role="log" aria-live="polite"></div>
         <div class="input-card">
-            <input type="text" id="user-input" placeholder="Type your message...">
-            <button id="send-btn">SEND</button>
+            <input type="text" id="user-input" placeholder="Type your message, ask for the menu, or place an order..." autocomplete="off">
+            <button id="send-btn" type="button" aria-label="Send message">
+                <span>SEND</span>
+                <svg class="send-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path d="M3.105 2.289a.75.75 0 00-.826.95l1.414 4.925A1.5 1.5 0 004.99 9.25l6.51.75-6.51.75a1.5 1.5 0 00-1.297 1.086l-1.414 4.925a.75.75 0 00.97.938l14-7a.75.75 0 000-1.342l-14-7z" />
+                </svg>
+            </button>
         </div>
     </div>
 
     <div class="sidebar">
         <div class="sidebar-title">QUICK ACTIONS</div>
 
-        <div class="action-btn" id="btn-menu">
-            <div class="action-title">View Menu</div>
-            <div class="action-sub">Browse our complete menu</div>
+        <div class="action-btn" id="btn-menu" role="button" tabindex="0">
+            <span class="action-icon" aria-hidden="true">📜</span>
+            <div class="action-text">
+                <div class="action-title">View Menu</div>
+                <div class="action-sub">Browse our complete menu</div>
+            </div>
         </div>
-        <div class="action-btn" id="btn-order">
-            <div class="action-title">Start New Order</div>
-            <div class="action-sub">Start ordering your food</div>
+        <div class="action-btn" id="btn-order" role="button" tabindex="0">
+            <span class="action-icon" aria-hidden="true">🍽️</span>
+            <div class="action-text">
+                <div class="action-title">Start New Order</div>
+                <div class="action-sub">Start ordering your food</div>
+            </div>
         </div>
-        <div class="action-btn" id="btn-cart">
-            <div class="action-title">View Cart</div>
-            <div class="action-sub">Check your current order</div>
+        <div class="action-btn" id="btn-cart" role="button" tabindex="0">
+            <span class="action-icon" aria-hidden="true">🛍️</span>
+            <div class="action-text">
+                <div class="action-title">View Cart</div>
+                <div class="action-sub">Check your current order</div>
+            </div>
         </div>
-        <div class="action-btn" id="btn-clear">
-            <div class="action-title">Clear Order</div>
-            <div class="action-sub">Remove everything from cart</div>
+        <div class="action-btn" id="btn-clear" role="button" tabindex="0">
+            <span class="action-icon" aria-hidden="true">🗑️</span>
+            <div class="action-text">
+                <div class="action-title">Clear Order</div>
+                <div class="action-sub">Remove everything from cart</div>
+            </div>
         </div>
 
         <div class="sidebar-title">CURRENT ORDER</div>
